@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIHE - Ignite Your Future</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'lihe-red': '#E53935',
+              'lihe-red-dark': '#c62828',
+              'lihe-dark': '#1A1A1A',
+              'lihe-gold': '#D4AF37',
+              'lihe-gray': '#F5F5F5',
+            },
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+            },
+            animation: {
+                'spin-slow': 'spin 20s linear infinite',
+                'spin-reverse-slow': 'spin 15s linear infinite reverse',
+            }
+          }
+        }
+      }
+    </script>
+    
+    <style>
+        /* ==================== RESET & CORE STYLES ==================== */
+        :root {
+            --transition-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            background: white;
+        }
+
+        /* 3D Perspective for Bento Grids & Hero */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #E53935; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c62828; }
+
+        /* ==================== SECTION ANIMATIONS (DEEP SPACE EFFECT) ==================== */
+        .page-section {
+            min-height: 100vh;
+            position: relative;
+            transition: opacity 1s ease-out, transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 1s ease-out;
+            will-change: transform, opacity, filter;
+            opacity: 0; 
+        }
+
+        /* State: Active (In View) */
+        .page-section.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
+            z-index: 10;
+        }
+
+        /* State: Scrolled Past (Going "into" the screen/up) */
+        .page-section.above {
+            opacity: 0;
+            transform: scale(1.15) translateY(-100px); /* Zooms in and moves up */
+            filter: blur(8px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* State: Coming Up (Coming from "far away"/down) */
+        .page-section.below {
+            opacity: 0;
+            transform: scale(0.9) translateY(100px); /* Smaller and lower */
+            filter: blur(5px);
+            z-index: 2;
+        }
+
+        /* ==================== INNER ELEMENT REVEALS ==================== */
+        /* These trigger when the section gets the .active class */
+        
+        .reveal-up { opacity: 0; transform: translateY(40px); transition: all 0.8s var(--transition-smooth); }
+        .active .reveal-up { opacity: 1; transform: translateY(0); }
+
+        .reveal-scale { opacity: 0; transform: scale(0.8); transition: all 0.8s var(--transition-smooth); }
+        .active .reveal-scale { opacity: 1; transform: scale(1); }
+
+        .reveal-left { opacity: 0; transform: translateX(-40px); transition: all 0.8s var(--transition-smooth); }
+        .active .reveal-left { opacity: 1; transform: translateX(0); }
+
+        .reveal-right { opacity: 0; transform: translateX(40px); transition: all 0.8s var(--transition-smooth); }
+        .active .reveal-right { opacity: 1; transform: translateX(0); }
+
+        /* Stagger Delays */
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+        .delay-400 { transition-delay: 0.4s; }
+        .delay-500 { transition-delay: 0.5s; }
+
+        /* ==================== PARALLAX SPECIFICS ==================== */
+        .hero-bg-overlay {
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(229, 57, 53, 0.25) 0%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .mouse-parallax-layer {
+            will-change: transform;
+            transition: transform 0.1s linear; /* Fast response for mouse */
+        }
+
+        .scroll-parallax-layer {
+            will-change: transform;
+            transition: transform 0.1s linear; /* Smooth scroll response */
+        }
+
+        /* ==================== UI COMPONENTS ==================== */
+        .nav-link::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: #E53935; transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        .feature-card:hover .feature-icon { transform: rotateY(180deg); background: #E53935; color: white; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+</head>
+<body class="bg-white text-lihe-dark">
+
+    <!-- Preloader -->
+    <div id="preloader" class="fixed inset-0 bg-lihe-dark z-[9999] flex flex-col items-center justify-center text-white transition-opacity duration-500">
+        <div class="text-lihe-red text-6xl mb-4 animate-pulse">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h2 class="text-3xl font-bold tracking-[4px]">LIHE</h2>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 right-8 z-[10000] flex items-center gap-4 bg-lihe-dark/95 backdrop-blur-md text-white px-6 py-4 rounded-xl border-l-4 border-lihe-red shadow-2xl transition-all duration-500 translate-x-[150%]">
+        <i class="fas fa-check-circle text-lihe-red text-xl"></i>
+        <span id="toast-msg" class="font-medium">Notification</span>
+    </div>
+
+    <!-- Navigation Dots -->
+    <div id="nav-dots" class="hidden lg:flex fixed right-8 top-1/2 -translate-y-1/2 z-50 flex-col gap-4">
+        <!-- Generated by JS -->
+    </div>
+
+    <!-- Navbar -->
+    <header id="header" class="fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 py-6 bg-white/90 backdrop-blur-md border-b border-black/5">
+        <div class="max-w-[1400px] mx-auto px-8 flex justify-between items-center">
+            <a href="#hero" class="flex items-center gap-3 group text-lihe-dark no-underline">
+                <div class="w-[45px] h-[45px] bg-gradient-to-br from-lihe-red to-lihe-red-dark rounded-xl flex items-center justify-center text-white transition-transform duration-300 group-hover:rotate-[15deg] group-hover:scale-105 shadow-lg">
+                    <i class="fas fa-graduation-cap text-xl"></i>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-2xl font-extrabold leading-none">LIHE</h1>
+                    <span class="text-[10px] font-bold text-lihe-red tracking-[2px] uppercase">Institute</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex items-center gap-10">
+                <a href="#hero" class="nav-link relative font-semibold text-sm uppercase tracking-wide py-1">Home</a>
+                <a href="#about" class="nav-link relative font-semibold text-sm uppercase tracking-wide py-1">About</a>
+                <a href="#courses" class="nav-link relative font-semibold text-sm uppercase tracking-wide py-1">Courses</a>
+                <a href="#why" class="nav-link relative font-semibold text-sm uppercase tracking-wide py-1">Why Us</a>
+                <a href="#events" class="nav-link relative font-semibold text-sm uppercase tracking-wide py-1">Events</a>
+                <a href="#contact" class="nav-link relative font-semibold text-sm uppercase tracking-wide py-1">Contact</a>
+                <button onclick="showToast('Application Portal Opening...')" class="px-8 py-3 bg-lihe-red text-white rounded-full font-semibold text-sm uppercase tracking-wide shadow-lg shadow-lihe-red/30 hover:bg-lihe-dark hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+                    Apply Now
+                </button>
+            </nav>
+
+            <!-- Mobile Toggle -->
+            <button id="mobile-menu-btn" class="md:hidden text-lihe-dark text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Nav -->
+        <div id="mobile-menu" class="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl transition-all duration-300 origin-top scale-y-0 opacity-0 h-0 overflow-hidden">
+            <nav class="flex flex-col p-8 gap-6">
+                <a href="#hero" class="mobile-link text-lg font-bold border-b border-gray-100 pb-2">Home</a>
+                <a href="#about" class="mobile-link text-lg font-bold border-b border-gray-100 pb-2">About</a>
+                <a href="#courses" class="mobile-link text-lg font-bold border-b border-gray-100 pb-2">Courses</a>
+                <a href="#events" class="mobile-link text-lg font-bold border-b border-gray-100 pb-2">Events</a>
+                <a href="#contact" class="mobile-link text-lg font-bold border-b border-gray-100 pb-2">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="w-full">
+
+        <!-- HERO SECTION (Mouse Parallax) -->
+        <section id="hero" class="page-section bg-gradient-to-br from-slate-800 to-slate-900 text-white flex items-center justify-center overflow-hidden !py-0">
+            <div class="hero-bg-overlay absolute inset-0 opacity-30 pointer-events-none"></div>
+            
+            <div class="max-w-[1400px] mx-auto px-8 grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-center relative z-10 w-full h-screen">
+                <!-- Text Content -->
+                <div class="hero-text mouse-parallax-layer text-center lg:text-left reveal-up" data-speed="10">
+                    <h1 class="text-5xl lg:text-7xl font-black leading-[1.1] mb-6">
+                        <span class="text-lihe-red drop-shadow-[0_0_30px_rgba(229,57,53,0.4)]">IGNITE</span><br>YOUR FUTURE
+                    </h1>
+                    <p class="text-xl text-white/80 mb-10 max-w-2xl mx-auto lg:mx-0 font-light reveal-up delay-100">
+                        Lincoln Institute of Higher Education. Where innovation meets excellence, shaping tomorrow's leaders today in the heart of Sydney.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start reveal-up delay-200">
+                        <a href="#courses" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-lihe-red text-white rounded-full font-bold uppercase tracking-wide shadow-[0_4px_20px_rgba(229,57,53,0.4)] hover:shadow-[0_8px_30px_rgba(229,57,53,0.6)] hover:-translate-y-1 transition-all duration-300">
+                            Explore Programs <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="#contact" class="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/30 text-white rounded-full font-bold uppercase tracking-wide hover:bg-white hover:text-lihe-dark hover:-translate-y-1 transition-all duration-300">
+                            Contact Us
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Visual (Rings & Icon) -->
+                <div class="hidden lg:flex relative h-[500px] items-center justify-center perspective-1000 reveal-scale delay-300">
+                    <div class="mouse-parallax-layer absolute inset-0 flex items-center justify-center" data-speed="-30">
+                        <div class="w-[450px] h-[450px] border-2 border-white/10 rounded-full animate-spin-slow before:content-[''] before:absolute before:-top-[5px] before:left-1/2 before:w-3 before:h-3 before:bg-lihe-red before:rounded-full before:shadow-[0_0_15px_#E53935]"></div>
+                        <div class="absolute w-[300px] h-[300px] border border-white/5 rounded-full animate-spin-reverse-slow"></div>
+                    </div>
+                    <div class="mouse-parallax-layer" data-speed="-15">
+                        <i class="fas fa-graduation-cap text-9xl text-white/5 backdrop-blur-sm relative z-10 drop-shadow-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION (Scroll Parallax) -->
+        <section id="about" class="page-section py-24 flex items-center justify-center">
+            <div class="max-w-[1400px] mx-auto px-8 w-full">
+                <div class="text-center mb-16 reveal-up">
+                    <div class="text-lihe-red font-bold uppercase tracking-[2px] text-sm mb-2">About LIHE</div>
+                    <h2 class="text-4xl lg:text-5xl font-extrabold text-lihe-dark leading-tight">A Legacy of Excellence</h2>
+                    <div class="w-[60px] h-1 bg-lihe-red mx-auto mt-6 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div class="relative z-10 reveal-left delay-100">
+                        <p class="text-slate-500 text-lg leading-relaxed mb-8">
+                            We are a premier institution dedicated to shaping the next generation of leaders. Located in Sydney, we offer a vibrant, global community where innovation thrives and students are empowered to achieve their full potential.
+                        </p>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="bg-lihe-gray p-8 rounded-2xl text-center hover:bg-lihe-red hover:-translate-y-2 group transition-all duration-300">
+                                <div class="text-4xl font-extrabold text-lihe-red mb-2 group-hover:text-white transition-colors">15+</div>
+                                <div class="text-sm font-semibold text-slate-500 group-hover:text-white/90 transition-colors uppercase">Years</div>
+                            </div>
+                            <div class="bg-lihe-gray p-8 rounded-2xl text-center hover:bg-lihe-red hover:-translate-y-2 group transition-all duration-300">
+                                <div class="text-4xl font-extrabold text-lihe-red mb-2 group-hover:text-white transition-colors">5k+</div>
+                                <div class="text-sm font-semibold text-slate-500 group-hover:text-white/90 transition-colors uppercase">Alumni</div>
+                            </div>
+                            <div class="bg-lihe-gray p-8 rounded-2xl text-center hover:bg-lihe-red hover:-translate-y-2 group transition-all duration-300">
+                                <div class="text-4xl font-extrabold text-lihe-red mb-2 group-hover:text-white transition-colors">100+</div>
+                                <div class="text-sm font-semibold text-slate-500 group-hover:text-white/90 transition-colors uppercase">Countries</div>
+                            </div>
+                            <div class="bg-lihe-gray p-8 rounded-2xl text-center hover:bg-lihe-red hover:-translate-y-2 group transition-all duration-300">
+                                <div class="text-4xl font-extrabold text-lihe-red mb-2 group-hover:text-white transition-colors">95%</div>
+                                <div class="text-sm font-semibold text-slate-500 group-hover:text-white/90 transition-colors uppercase">Hired</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scroll Parallax Image Stack -->
+                    <div class="scroll-parallax-layer relative h-[400px] lg:h-[500px] w-full reveal-right delay-200" data-speed="-0.1">
+                        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800" class="image-slide absolute inset-0 w-full h-full object-cover rounded-3xl shadow-2xl transition-opacity duration-1000 opacity-100" alt="Students">
+                        <img src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800" class="image-slide absolute inset-0 w-full h-full object-cover rounded-3xl shadow-2xl transition-opacity duration-1000 opacity-0" alt="Library">
+                        
+                        <div class="absolute -z-10 -bottom-10 -right-10 w-40 h-40 bg-lihe-gold/20 rounded-full blur-2xl animate-pulse"></div>
+                        <div class="absolute -z-10 -top-10 -left-10 w-32 h-32 bg-lihe-red/10 rounded-full blur-2xl"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COURSES SECTION -->
+        <section id="courses" class="page-section py-24 flex items-center justify-center">
+            <div class="max-w-[1400px] mx-auto px-8 w-full">
+                <div class="text-center mb-16 reveal-up">
+                    <div class="text-lihe-red font-bold uppercase tracking-[2px] text-sm mb-2">Our Programs</div>
+                    <h2 className="text-4xl lg:text-5xl font-extrabold text-lihe-dark">Featured Courses</h2>
+                    <div className="w-[60px] h-1 bg-lihe-red mx-auto mt-6 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <!-- Card 1 -->
+                    <div class="reveal-up delay-100 bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-black/5 group cursor-pointer">
+                        <div class="h-60 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="MBA">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center text-lihe-red shadow-md">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                        </div>
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold mb-3">Business (MBA)</h3>
+                            <p class="text-slate-500 mb-6 text-sm leading-relaxed">Master strategic leadership and global business management with our accredited MBA program.</p>
+                            <span class="flex items-center gap-2 text-lihe-red font-bold uppercase text-sm tracking-wider transition-all group-hover:gap-4">
+                                View Details <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="reveal-up delay-200 bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-black/5 group cursor-pointer">
+                        <div class="h-60 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="IT">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center text-lihe-red shadow-md">
+                                <i class="fas fa-laptop-code"></i>
+                            </div>
+                        </div>
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold mb-3">Information Tech</h3>
+                            <p class="text-slate-500 mb-6 text-sm leading-relaxed">Cybersecurity, AI, and Cloud Computing designed for the digital age.</p>
+                            <span class="flex items-center gap-2 text-lihe-red font-bold uppercase text-sm tracking-wider transition-all group-hover:gap-4">
+                                View Details <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="reveal-up delay-300 bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-black/5 group cursor-pointer">
+                        <div class="h-60 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Health">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center text-lihe-red shadow-md">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                        </div>
+                        <div class="p-8">
+                            <h3 class="text-2xl font-bold mb-3">Health Sciences</h3>
+                            <p class="text-slate-500 mb-6 text-sm leading-relaxed">Leading healthcare innovation and clinical research for a healthier tomorrow.</p>
+                            <span class="flex items-center gap-2 text-lihe-red font-bold uppercase text-sm tracking-wider transition-all group-hover:gap-4">
+                                View Details <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WHY US SECTION (Staggered Bento Grid) -->
+        <section id="why" class="page-section py-24 flex items-center justify-center">
+            <div class="max-w-[1400px] mx-auto px-8 w-full">
+                <div class="text-center mb-16 reveal-up">
+                    <div class="text-lihe-red font-bold uppercase tracking-[2px] text-sm mb-2">The LIHE Advantage</div>
+                    <h2 class="text-4xl lg:text-5xl font-extrabold text-lihe-dark">Why Choose Us?</h2>
+                    <div class="w-[60px] h-1 bg-lihe-red mx-auto mt-6 rounded-full"></div>
+                </div>
+
+                <div id="why-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
+                    <!-- Feature Cards with Scroll Parallax Classes applied via JS -->
+                    <div class="feature-card md:col-span-2 bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-3xl border border-transparent hover:border-lihe-red/20 hover:bg-white hover:shadow-xl transition-all duration-300 group flex flex-col items-start scroll-parallax-layer" data-speed="0.05">
+                        <div class="feature-icon w-16 h-16 bg-lihe-red/10 text-lihe-red rounded-2xl flex items-center justify-center mb-6 text-2xl transition-all duration-500 perspective-1000">
+                            <i class="fas fa-globe-americas"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Global Network</h3>
+                        <p class="text-slate-500 text-sm">Join a diverse community from over 100 countries.</p>
+                    </div>
+
+                    <div class="feature-card md:col-span-2 bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-3xl border border-transparent hover:border-lihe-red/20 hover:bg-white hover:shadow-xl transition-all duration-300 group flex flex-col items-start scroll-parallax-layer" data-speed="-0.05">
+                        <div class="feature-icon w-16 h-16 bg-lihe-red/10 text-lihe-red rounded-2xl flex items-center justify-center mb-6 text-2xl transition-all duration-500 perspective-1000">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Industry Ready</h3>
+                        <p class="text-slate-500 text-sm">Curriculum designed with top firms to meet market demands.</p>
+                    </div>
+
+                    <!-- Small Cards -->
+                    <div class="feature-card bg-lihe-gray p-8 rounded-3xl border border-transparent hover:border-lihe-red/20 hover:bg-white hover:shadow-xl transition-all duration-300 group flex flex-col items-start scroll-parallax-layer" data-speed="0.08">
+                        <div class="feature-icon w-16 h-16 bg-lihe-red/10 text-lihe-red rounded-2xl flex items-center justify-center mb-6 text-2xl transition-all duration-500 perspective-1000">
+                            <i class="fas fa-award"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">High Employability</h3>
+                        <p class="text-slate-500 text-sm">95% employed within 6 months.</p>
+                    </div>
+
+                    <div class="feature-card bg-lihe-gray p-8 rounded-3xl border border-transparent hover:border-lihe-red/20 hover:bg-white hover:shadow-xl transition-all duration-300 group flex flex-col items-start scroll-parallax-layer" data-speed="-0.08">
+                        <div class="feature-icon w-16 h-16 bg-lihe-red/10 text-lihe-red rounded-2xl flex items-center justify-center mb-6 text-2xl transition-all duration-500 perspective-1000">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Small Classes</h3>
+                        <p class="text-slate-500 text-sm">Personalized attention for every student.</p>
+                    </div>
+
+                    <div class="feature-card bg-lihe-gray p-8 rounded-3xl border border-transparent hover:border-lihe-red/20 hover:bg-white hover:shadow-xl transition-all duration-300 group flex flex-col items-start scroll-parallax-layer" data-speed="0.05">
+                        <div class="feature-icon w-16 h-16 bg-lihe-red/10 text-lihe-red rounded-2xl flex items-center justify-center mb-6 text-2xl transition-all duration-500 perspective-1000">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Expert Faculty</h3>
+                        <p class="text-slate-500 text-sm">Learn directly from PhDs and veterans.</p>
+                    </div>
+
+                    <div class="feature-card bg-lihe-gray p-8 rounded-3xl border border-transparent hover:border-lihe-red/20 hover:bg-white hover:shadow-xl transition-all duration-300 group flex flex-col items-start scroll-parallax-layer" data-speed="-0.05">
+                        <div class="feature-icon w-16 h-16 bg-lihe-red/10 text-lihe-red rounded-2xl flex items-center justify-center mb-6 text-2xl transition-all duration-500 perspective-1000">
+                            <i class="fas fa-hands-helping"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">24/7 Support</h3>
+                        <p class="text-slate-500 text-sm">Academic and mental health support.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EVENTS SECTION (Tabs) -->
+        <section id="events" class="page-section bg-slate-50 py-24 flex items-center justify-center">
+            <div class="max-w-[1400px] mx-auto px-8 w-full">
+                <div class="text-center mb-12 reveal-up">
+                    <div class="text-lihe-red font-bold uppercase tracking-[2px] text-sm mb-2">Campus Life</div>
+                    <h2 class="text-4xl lg:text-5xl font-extrabold text-lihe-dark">Events & News</h2>
+                    <div class="w-[60px] h-1 bg-lihe-red mx-auto mt-6 rounded-full"></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex justify-center mb-12 reveal-scale delay-100">
+                    <div class="bg-white p-1 rounded-full shadow-md border border-gray-100 inline-flex">
+                        <button onclick="switchTab('upcoming')" id="tab-upcoming" class="px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300 bg-lihe-red text-white shadow-lg">
+                            Upcoming
+                        </button>
+                        <button onclick="switchTab('past')" id="tab-past" class="px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300 text-slate-500 hover:text-lihe-dark">
+                            Past Events
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Events Grid -->
+                <div id="events-container" class="grid grid-cols-1 md:grid-cols-2 gap-8 reveal-up delay-200">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTIMONIALS SECTION -->
+        <section id="testimonials" class="page-section bg-gradient-to-br from-lihe-dark to-slate-900 text-white py-24 flex items-center justify-center">
+            <div class="max-w-[1400px] mx-auto px-8 w-full grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-16 items-start">
+                <div class="sticky top-24 reveal-left">
+                    <div class="text-lihe-red font-bold uppercase tracking-[2px] text-sm mb-2">Student Voices</div>
+                    <h2 class="text-4xl lg:text-5xl font-extrabold mb-6">What Our Students Say</h2>
+                    <div class="w-[60px] h-1 bg-lihe-red mb-8 rounded-full"></div>
+                    <p class="text-white/80 text-lg leading-relaxed mb-10">
+                        Hear directly from our graduates about their transformative journey at LIHE and how it shaped their careers.
+                    </p>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <div class="text-5xl font-black text-lihe-red mb-2">4.9/5</div>
+                            <div class="text-xs text-white/60 uppercase tracking-widest font-bold">Student Rating</div>
+                        </div>
+                        <div>
+                            <div class="text-5xl font-black text-lihe-red mb-2">98%</div>
+                            <div class="text-xs text-white/60 uppercase tracking-widest font-bold">Recommendation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-6 reveal-right delay-200">
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 p-10 rounded-3xl hover:bg-white/10 hover:border-lihe-red hover:translate-x-2 transition-all duration-300">
+                        <p class="text-lg italic text-white/90 leading-loose mb-8">
+                            "Choosing LIHE was the best decision. The support for international students is incredible, and my professors were industry experts who genuinely cared about my success."
+                        </p>
+                        <div class="flex items-center gap-4 pt-6 border-t border-white/10">
+                            <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100" alt="Kenji" class="w-14 h-14 rounded-full object-cover border-2 border-lihe-red">
+                            <div>
+                                <h4 class="font-bold text-lg">Kenji Tanaka</h4>
+                                <span class="text-lihe-gold text-xs font-bold uppercase tracking-wider">MBA Graduate 2023</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 p-10 rounded-3xl hover:bg-white/10 hover:border-lihe-red hover:translate-x-2 transition-all duration-300">
+                        <p class="text-lg italic text-white/90 leading-loose mb-8">
+                            "The hands-on IT program helped me secure a job before graduation. The career support team is world-class and guided me through every step."
+                        </p>
+                        <div class="flex items-center gap-4 pt-6 border-t border-white/10">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" alt="Priya" class="w-14 h-14 rounded-full object-cover border-2 border-lihe-red">
+                            <div>
+                                <h4 class="font-bold text-lg">Priya Sharma</h4>
+                                <span class="text-lihe-gold text-xs font-bold uppercase tracking-wider">B.Sc. IT Graduate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="page-section bg-slate-50 py-24 flex items-center justify-center">
+            <div class="max-w-[1400px] mx-auto px-8 w-full">
+                <div class="text-center mb-16 reveal-up">
+                    <div class="text-lihe-red font-bold uppercase tracking-[2px] text-sm mb-2">Get in Touch</div>
+                    <h2 class="text-4xl lg:text-5xl font-extrabold text-lihe-dark">Contact Us</h2>
+                    <div class="w-[60px] h-1 bg-lihe-red mx-auto mt-6 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
+                    <!-- Info -->
+                    <div class="space-y-8 reveal-left">
+                        <h3 class="text-xl font-bold mb-6">Location & Info</h3>
+                        <ul class="space-y-6">
+                            <li class="flex items-start gap-4 text-slate-600">
+                                <i class="fas fa-map-marker-alt text-lihe-red mt-1"></i>
+                                <span>123 Education St, Sydney NSW 2000, Australia</span>
+                            </li>
+                            <li class="flex items-center gap-4 text-slate-600">
+                                <i class="fas fa-phone text-lihe-red"></i>
+                                <span>+61 2 1234 5678</span>
+                            </li>
+                            <li class="flex items-center gap-4 text-slate-600">
+                                <i class="fas fa-envelope text-lihe-red"></i>
+                                <span>info@lihe.edu.au</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Form -->
+                    <div class="space-y-8 reveal-up delay-100">
+                        <h3 class="text-xl font-bold mb-6">Newsletter</h3>
+                        <form onsubmit="handleSubscribe(event)" class="mb-6">
+                            <input name="email" type="email" placeholder="Your email address" required class="w-full px-6 py-3 rounded-full border border-slate-200 focus:border-lihe-red focus:ring-2 focus:ring-lihe-red/10 outline-none transition-all mb-3">
+                            <button type="submit" class="w-full px-6 py-3 bg-lihe-red text-white font-bold uppercase rounded-full hover:bg-lihe-dark transition-colors shadow-lg shadow-lihe-red/20">Subscribe</button>
+                        </form>
+                        <div class="flex gap-4">
+                            <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-lihe-dark shadow-md hover:bg-lihe-red hover:text-white hover:-translate-y-1 transition-all"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-lihe-dark shadow-md hover:bg-lihe-red hover:text-white hover:-translate-y-1 transition-all"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-lihe-dark shadow-md hover:bg-lihe-red hover:text-white hover:-translate-y-1 transition-all"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Map -->
+                    <div class="reveal-scale delay-200 h-[300px] lg:h-auto rounded-3xl overflow-hidden shadow-xl border-4 border-white hover:shadow-2xl transition-shadow duration-300">
+                         <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3312.822837330818!2d151.2069!3d-33.8688!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b12ae40c21362d3%3A0x6b80145100000000!2sSydney%20CBD!5e0!3m2!1sen!2sau!4v1620000000000!5m2!1sen!2sau" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // ==================== DATA ====================
+        const eventsData = [
+            {
+                id: 'e1', title: 'Open Day 2024', date: 'Oct 15, 2024', time: '10:00 AM - 4:00 PM', location: 'Sydney Campus',
+                description: 'Explore our campus, meet faculty, and discover your future career path.', type: 'upcoming',
+                image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'
+            },
+            {
+                id: 'e2', title: 'AI in Business Seminar', date: 'Nov 02, 2024', time: '2:00 PM - 5:00 PM', location: 'Auditorium A',
+                description: 'A deep dive into how Artificial Intelligence is reshaping the corporate world.', type: 'upcoming',
+                image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800'
+            },
+            {
+                id: 'e3', title: 'Graduation Ceremony 2023', date: 'Dec 10, 2023', time: '1:00 PM', location: 'Grand Hall',
+                description: 'Celebrating the achievements of the class of 2023.', type: 'past',
+                image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800'
+            },
+            {
+                id: 'e4', title: 'Research Symposium', date: 'Aug 20, 2023', time: '9:00 AM', location: 'Virtual',
+                description: 'Presentations of groundbreaking research by our postgraduate students.', type: 'past',
+                image: 'https://images.unsplash.com/photo-1558008258-3256797b43f3?w=800'
+            }
+        ];
+
+        // ==================== CORE LOGIC ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Preloader
+            setTimeout(() => {
+                const preloader = document.getElementById('preloader');
+                preloader.style.opacity = '0';
+                setTimeout(() => preloader.style.display = 'none', 500);
+            }, 1000);
+
+            // 2. Initialize Events
+            renderEvents('upcoming');
+
+            // 3. Carousel (About Section)
+            const images = document.querySelectorAll('.image-slide');
+            let currentImg = 0;
+            setInterval(() => {
+                images[currentImg].style.opacity = '0';
+                currentImg = (currentImg + 1) % images.length;
+                images[currentImg].style.opacity = '1';
+            }, 4000);
+
+            // 4. Observer for Section Animations (Deep Space Effect)
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const section = entry.target;
+                    const rect = entry.boundingClientRect;
+
+                    if (entry.isIntersecting) {
+                        section.classList.add('active');
+                        section.classList.remove('above', 'below');
+                        updateNavDots(section.id);
+                    } else {
+                        section.classList.remove('active');
+                        if (rect.top < 0) {
+                            section.classList.add('above');
+                            section.classList.remove('below');
+                        } else {
+                            section.classList.add('below');
+                            section.classList.remove('above');
+                        }
+                    }
+                });
+            }, {
+                threshold: 0.15, // Trigger slightly earlier
+                rootMargin: "-5% 0px -5% 0px"
+            });
+
+            document.querySelectorAll('.page-section').forEach(sec => observer.observe(sec));
+
+            // 5. Generate Nav Dots
+            const dotContainer = document.getElementById('nav-dots');
+            document.querySelectorAll('.page-section').forEach(sec => {
+                const a = document.createElement('a');
+                a.href = `#${sec.id}`;
+                a.className = 'w-3 h-3 rounded-full bg-black/20 hover:bg-lihe-red hover:scale-125 transition-all duration-300 relative group dot-link';
+                a.setAttribute('data-target', sec.id);
+                a.innerHTML = `<span class="absolute right-6 top-1/2 -translate-y-1/2 bg-lihe-dark text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">${sec.id.toUpperCase()}</span>`;
+                dotContainer.appendChild(a);
+            });
+        });
+
+        // ==================== PARALLAX LOGIC ====================
+        // Mouse Parallax (Hero)
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            const y = (e.clientY / window.innerHeight) * 2 - 1;
+
+            document.querySelectorAll('.mouse-parallax-layer').forEach(layer => {
+                const speed = layer.getAttribute('data-speed') || 20;
+                layer.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+
+        // Scroll Parallax (Images & Bento Grid)
+        document.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const header = document.getElementById('header');
+            
+            // Header State
+            if (scrollY > 50) {
+                header.classList.add('shadow-sm', 'py-3', 'bg-white/95');
+                header.classList.remove('py-6', 'bg-white/90');
+            } else {
+                header.classList.remove('shadow-sm', 'py-3', 'bg-white/95');
+                header.classList.add('py-6', 'bg-white/90');
+            }
+
+            // Scroll Parallax Elements
+            // Only apply on desktop to save mobile performance
+            if (window.innerWidth > 1024) {
+                document.querySelectorAll('.scroll-parallax-layer').forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    const speed = parseFloat(el.getAttribute('data-speed')) || 0;
+                    const offset = (rect.top + rect.height / 2 - window.innerHeight / 2) * speed;
+                    el.style.transform = `translateY(${offset}px)`;
+                });
+            }
+        }, { passive: true });
+
+        // ==================== HELPER FUNCTIONS ====================
+        function renderEvents(type) {
+            const container = document.getElementById('events-container');
+            const filtered = eventsData.filter(e => e.type === type);
+            
+            container.innerHTML = filtered.map(event => `
+                <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col md:flex-row group h-full">
+                    <div class="w-full md:w-2/5 h-48 md:h-auto overflow-hidden">
+                        <img src="${event.image}" alt="${event.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <div class="p-8 flex flex-col justify-center w-full md:w-3/5">
+                        <div class="flex items-center gap-2 text-lihe-red text-xs font-bold uppercase tracking-widest mb-2">
+                            <i class="far fa-calendar"></i> ${event.date}
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3 text-lihe-dark group-hover:text-lihe-red transition-colors">${event.title}</h3>
+                        <div class="flex flex-col gap-2 text-slate-500 text-sm mb-4">
+                            <div class="flex items-center gap-2"><i class="far fa-clock"></i> ${event.time}</div>
+                            <div class="flex items-center gap-2"><i class="fas fa-map-marker-alt"></i> ${event.location}</div>
+                        </div>
+                        <p class="text-slate-600 mb-6 text-sm">${event.description}</p>
+                        <button onclick="showToast('Loading Details...')" class="w-fit px-6 py-2 rounded-full text-sm font-bold border-2 transition-all duration-300 ${type === 'upcoming' ? 'bg-lihe-dark text-white border-lihe-dark hover:bg-white hover:text-lihe-dark' : 'border-slate-300 text-slate-500 hover:border-lihe-red hover:text-lihe-red'}">
+                            ${type === 'upcoming' ? 'Register Now' : 'View Recap'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(type) {
+            document.getElementById('tab-upcoming').className = type === 'upcoming' 
+                ? 'px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300 bg-lihe-red text-white shadow-lg'
+                : 'px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300 text-slate-500 hover:text-lihe-dark';
+            
+            document.getElementById('tab-past').className = type === 'past' 
+                ? 'px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300 bg-lihe-red text-white shadow-lg'
+                : 'px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300 text-slate-500 hover:text-lihe-dark';
+            
+            renderEvents(type);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-x-[150%]');
+            setTimeout(() => toast.classList.add('translate-x-[150%]'), 3000);
+        }
+
+        function handleSubscribe(e) {
+            e.preventDefault();
+            const email = e.target.querySelector('input').value;
+            showToast(`Subscribed: ${email}`);
+            e.target.reset();
+        }
+
+        function updateNavDots(id) {
+            document.querySelectorAll('.dot-link').forEach(dot => {
+                if (dot.getAttribute('data-target') === id) {
+                    dot.classList.add('bg-lihe-red', 'scale-125');
+                    dot.classList.remove('bg-black/20');
+                } else {
+                    dot.classList.remove('bg-lihe-red', 'scale-125');
+                    dot.classList.add('bg-black/20');
+                }
+            });
+        }
+
+        // Mobile Menu
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        let isMenuOpen = false;
+
+        mobileBtn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                mobileMenu.classList.remove('scale-y-0', 'opacity-0', 'h-0');
+                mobileMenu.classList.add('scale-y-100', 'opacity-100', 'h-auto');
+                mobileBtn.innerHTML = '<i class="fas fa-times"></i>';
+            } else {
+                mobileMenu.classList.add('scale-y-0', 'opacity-0', 'h-0');
+                mobileMenu.classList.remove('scale-y-100', 'opacity-100', 'h-auto');
+                mobileBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            }
+        });
+
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                isMenuOpen = false;
+                mobileMenu.classList.add('scale-y-0', 'opacity-0', 'h-0');
+                mobileBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            });
+        });
+
+    </script>
+</body>
+</html>
